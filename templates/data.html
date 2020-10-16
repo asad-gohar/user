@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
+  <style>
+    body{
+  background-color: #dedede
+}
+  </style>
+</head>
+
+<script>
+function download_table_as_csv(table_id) {
+    var rows = document.querySelectorAll('table#' + table_id + ' tr');
+    var csv = [];
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll('td, th');
+        for (var j = 0; j < cols.length; j++) {
+            var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ')
+            data = data.replace(/"/g, '""');
+            row.push('"' + data + '"');
+        }
+        csv.push(row.join(','));
+    }
+    var csv_string = csv.join('\n');
+    var filename = 'export_' + table_id + '_' + new Date().toLocaleDateString() + '.csv';
+    var link = document.createElement('a');
+    link.style.display = 'none';
+    link.setAttribute('target', '_blank');
+    link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function sortTable(table_id) {
+  var table, rows, switching, i, x, y, shouldSwitch;
+  table = document.getElementById(table_id);
+  switching = true;
+  while (switching) {
+    switching = false;
+    rows = table.rows;
+    for (i = 1; i < (rows.length - 1); i++) {
+      shouldSwitch = false;
+      x = rows[i].getElementsByTagName("TD")[1];
+      y = rows[i + 1].getElementsByTagName("TD")[1];
+      if (Number(x.innerHTML) < Number(y.innerHTML)) {
+        shouldSwitch = true;
+        break;
+      }
+    }
+    if (shouldSwitch) {
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+    }
+  }
+}
+
+
+</script>
+
+<body>
+	{% block content %}
+
+	<table id = "table">
+		<tr>
+			<th>Keywords</th>
+			<th>Search Results</th>
+		</tr>
+		{% for n in range(enumerate) %}
+			<tr>
+				<td>{{posts[0][n]}}</td>
+				<td>{{posts[1][n]}}</td>
+			</tr>
+		{% endfor %}
+	</table>
+	{% endblock content %}
+
+	<button id = "download" onclick="download_table_as_csv('table');">Download</button>
+	<button id = "sort" onclick="sortTable('table');">Sort</button>
+
+</body>
+</html>
